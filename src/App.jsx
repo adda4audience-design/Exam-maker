@@ -59,23 +59,25 @@ function App() {
   };
 
   const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append("file", file);
-    try {
-      const response = await fetch("http://localhost:8000/upload-pdf", { method: "POST", body: formData });
-      if (!response.ok) throw new Error("Backend Error");
-      const data = await response.json();
-      setExamData({ header: { ...DEFAULT_HEADER, ...data.header }, sections: data.sections || [] }); 
-      setView('editor');
-    } catch (error) {
-      alert("Error: " + error.message);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const file = e.target.files[0];
+  if (!file) return;
+  setIsLoading(true);
+  const formData = new FormData();
+  formData.append("file", file);
+  try {
+    // Use your deployed backend URL
+    const BACKEND_URL = "https://exam-paper-backend-b7nm.onrender.com";
+    const response = await fetch(`${BACKEND_URL}/upload-pdf`, { method: "POST", body: formData });
+    if (!response.ok) throw new Error("Backend Error");
+    const data = await response.json();
+    setExamData({ header: { ...DEFAULT_HEADER, ...data.header }, sections: data.sections || [] }); 
+    setView('editor');
+  } catch (error) {
+    alert("Error: " + error.message);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   const updateHeader = (field, value) => setExamData(prev => ({ ...prev, header: { ...prev.header, [field]: value } }));
   
