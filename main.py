@@ -5,28 +5,27 @@ from pypdf import PdfReader
 import io
 import json
 import re
+import os
 
 app = FastAPI()
 
-# --- PASTE YOUR GROQ API KEY HERE ---
-# Get API key from environment variable (more secure)
-API_KEY = os.getenv("GROQ_API_KEY",)
+# Get API key from environment variable
+API_KEY = os.getenv("GROQ_API_KEY")
+
+if not API_KEY:
+    raise ValueError("⚠️ GROQ_API_KEY not found! Please set it in environment variables.")
 
 client = Groq(api_key=API_KEY)
 
-# Update CORS to allow your frontend domain
 app.add_middleware(
     CORSMiddleware, 
-    allow_origins=["*"],  # In production, replace with your actual frontend URL
+    allow_origins=["*"],
     allow_methods=["*"], 
     allow_headers=["*"],
 )
 
-client = Groq(api_key=API_KEY)
 
-app.add_middleware(
-    CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"],
-)
+# <-- REMOVED: Duplicate client and middleware declarations
 
 SYSTEM_PROMPT = """You are an expert exam paper parser. Parse COMPLETE PDF into perfectly structured JSON.
 
@@ -71,7 +70,7 @@ SYSTEM_PROMPT = """You are an expert exam paper parser. Parse COMPLETE PDF into 
 7. **SUB-QUESTIONS WITH OPTIONS**:
    - If a sub-question has MCQ options, those go in sub_question's `options` field
    - Example structure:
-   ```
+```
    {
      "number": "3",
      "text": "Complete ANY TEN of twelve tasks:",
@@ -95,7 +94,7 @@ SYSTEM_PROMPT = """You are an expert exam paper parser. Parse COMPLETE PDF into 
        }
      ]
    }
-   ```
+```
 
 8. **EXTRACT PASSAGES FOR LITERATURE QUESTIONS**:
    - Q6, Q7 often have poetry/prose extracts
@@ -215,8 +214,8 @@ Parse NOW with complete accuracy:"""
                 }
             ],
             model="llama-3.3-70b-versatile",
-            temperature=0.02,  # Even lower for maximum consistency
-            max_tokens=32000,  # Maximum for llama-3.3-70b
+            temperature=0.02,
+            max_tokens=32000,
             response_format={"type": "json_object"}
         )
         
